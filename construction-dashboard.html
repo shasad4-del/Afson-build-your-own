@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f6f3">
+  <title>Fieldwork — Construction dashboard</title>
+  <style>
+    :root {
+      --ink: #202820;
+      --muted: #7b8379;
+      --line: #e7e9e3;
+      --canvas: #f5f6f3;
+      --surface: #fff;
+      --green: #264b38;
+      --green-2: #3f7455;
+      --lime: #c8e46b;
+      --sand: #f3e8d7;
+      --amber: #b87827;
+      --red: #ba5b4f;
+      --shadow: 0 8px 28px rgba(29, 44, 31, .045);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--canvas); color: var(--ink); font-size: 14px; }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    .app { min-height: 100vh; display: grid; grid-template-columns: 236px minmax(0,1fr); }
+    .sidebar { background: var(--green); color: #fff; padding: 25px 16px 18px; display: flex; flex-direction: column; min-height: 100vh; }
+    .brand { display: flex; align-items: center; gap: 11px; padding: 0 10px 31px; }
+    .brand-mark { width: 33px; height: 33px; display: grid; place-items: center; border-radius: 10px; background: var(--lime); color: var(--green); font-size: 18px; font-weight: 900; }
+    .brand-name { font-size: 17px; line-height: 1; letter-spacing: -.5px; font-weight: 750; }
+    .brand-sub { margin-top: 5px; color: #b9c7bb; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; }
+    .workspace-label { color: #9eb3a2; padding: 0 11px 9px; text-transform: uppercase; font-size: 10px; font-weight: 700; letter-spacing: .1em; }
+    .nav { display: grid; gap: 4px; }
+    .nav a { display: flex; align-items: center; gap: 12px; height: 42px; padding: 0 11px; border-radius: 8px; text-decoration: none; color: #d5ded5; font-weight: 550; transition: .15s ease; }
+    .nav a:hover, .nav a.active { background: rgba(255,255,255,.12); color: white; }
+    .nav a.active { box-shadow: inset 3px 0 var(--lime); }
+    .nav svg { width: 17px; height: 17px; opacity: .85; }
+    .sidebar-bottom { margin-top: auto; }
+    .upgrade { margin: 0 3px 20px; padding: 14px; border: 1px solid rgba(255,255,255,.15); border-radius: 10px; background: rgba(255,255,255,.06); }
+    .upgrade strong { display: block; font-size: 12px; margin-bottom: 5px; }
+    .upgrade p { margin: 0; color: #b5c3b8; line-height: 1.5; font-size: 11px; }
+    .upgrade button { margin-top: 12px; border: 0; background: var(--lime); color: var(--green); border-radius: 6px; padding: 7px 10px; font-size: 11px; font-weight: 700; }
+    .profile { display: flex; gap: 10px; align-items: center; padding: 12px 9px 0; border-top: 1px solid rgba(255,255,255,.14); }
+    .avatar { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; color: var(--green); background: #e3cfb1; font-size: 11px; font-weight: 800; }
+    .profile-name { font-size: 12px; font-weight: 650; }
+    .profile-role { color: #aec0b2; margin-top: 3px; font-size: 10px; }
+    main { min-width: 0; padding: 0 36px 38px; }
+    .topbar { height: 72px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); }
+    .crumb { color: var(--muted); font-size: 12px; }
+    .crumb strong { color: var(--ink); font-weight: 650; }
+    .top-actions { display: flex; align-items: center; gap: 10px; }
+    .date-pill { border: 1px solid var(--line); background: white; padding: 9px 12px; border-radius: 7px; color: #566056; font-size: 11px; }
+    .icon-btn { width: 35px; height: 35px; border: 1px solid var(--line); border-radius: 8px; color: #677267; background: white; display: grid; place-items: center; position: relative; }
+    .icon-btn svg { width: 16px; height: 16px; }
+    .notify-dot { width: 6px; height: 6px; border-radius: 50%; background: #e5844b; position: absolute; right: 7px; top: 7px; border: 1px solid white; }
+    .content { max-width: 1440px; margin: auto; }
+    .welcome { display: flex; align-items: end; justify-content: space-between; gap: 18px; padding: 29px 0 21px; }
+    .eyebrow { color: var(--green-2); text-transform: uppercase; letter-spacing: .12em; font-size: 10px; font-weight: 750; }
+    h1 { font-size: 25px; line-height: 1.2; letter-spacing: -.75px; margin: 6px 0 5px; font-weight: 720; }
+    .welcome p { margin: 0; color: var(--muted); font-size: 12px; }
+    .primary-btn { border: 0; display: inline-flex; gap: 8px; align-items: center; background: var(--green); color: white; border-radius: 7px; padding: 10px 14px; font-size: 12px; font-weight: 650; box-shadow: 0 3px 8px #264b3829; }
+    .primary-btn:hover { background: #315c44; }
+    .primary-btn svg { width: 15px; height: 15px; }
+    .demo-note { display: inline-flex; align-items: center; gap: 6px; color: #85724d; background: #f5eddd; border: 1px solid #eee4cf; border-radius: 5px; padding: 5px 8px; font-size: 10px; font-weight: 600; }
+    .demo-note svg { width: 12px; height: 12px; }
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 13px; }
+    .card { background: var(--surface); border: 1px solid #eaebe6; border-radius: 10px; box-shadow: var(--shadow); }
+    .stat { padding: 16px 17px 14px; min-height: 120px; }
+    .stat-head { display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: 11px; }
+    .stat-icon { width: 29px; height: 29px; border-radius: 8px; display: grid; place-items: center; background: #edf3eb; color: var(--green-2); }
+    .stat-icon.sand { background: #f7f0e5; color: #a77a36; }
+    .stat-icon.blue { background: #edf1f5; color: #617b94; }
+    .stat-icon.rose { background: #f7edeb; color: #b2665b; }
+    .stat-icon svg { width: 15px; height: 15px; }
+    .stat-number { margin-top: 8px; font-weight: 750; font-size: 25px; line-height: 1.15; letter-spacing: -.7px; }
+    .stat-foot { margin-top: 7px; display: flex; align-items: center; gap: 5px; color: var(--muted); font-size: 10px; }
+    .trend { color: var(--green-2); font-weight: 700; }
+    .trend.warn { color: var(--amber); }
+    .middle { display: grid; grid-template-columns: minmax(0,1.55fr) minmax(280px,1fr); gap: 14px; margin-top: 14px; }
+    .panel { padding: 17px 19px; }
+    .panel-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .panel-title { margin: 0; font-size: 13px; font-weight: 700; letter-spacing: -.1px; }
+    .panel-sub { margin: 4px 0 0; color: var(--muted); font-size: 10px; }
+    .select { color: #697369; background: white; border: 1px solid var(--line); border-radius: 6px; font-size: 10px; padding: 7px 9px; outline: none; }
+    .chart-legend { display: flex; align-items: center; gap: 14px; color: var(--muted); font-size: 9px; }
+    .legend-dot { width: 7px; height: 7px; border-radius: 2px; display: inline-block; margin-right: 4px; background: var(--green-2); }
+    .legend-dot.light { background: #d7e4d5; }
+    .chart { display: grid; grid-template-columns: 30px 1fr; height: 142px; margin-top: 16px; }
+    .ylabels { display: flex; flex-direction: column; justify-content: space-between; padding: 0 0 17px; font-size: 9px; color: #969d94; }
+    .plot { position: relative; display: grid; grid-template-columns: repeat(6,1fr); align-items: end; gap: 12px; padding: 0 7px 0; background: repeating-linear-gradient(to bottom, transparent 0, transparent 34px, #eef0eb 35px, transparent 36px); }
+    .month { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: end; gap: 7px; z-index: 1; }
+    .bars { height: 115px; display: flex; align-items: end; gap: 4px; }
+    .bar { width: 13px; border-radius: 3px 3px 0 0; background: #d7e4d5; }
+    .bar.actual { background: var(--green-2); }
+    .month span { color: #8b9389; font-size: 9px; }
+    .pulse-card { display: flex; flex-direction: column; }
+    .pulse-score { display: flex; align-items: center; gap: 12px; padding: 15px 0 12px; }
+    .score-ring { width: 54px; height: 54px; flex: 0 0 54px; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(var(--green-2) 0 92%, #e9eee8 92% 100%); position: relative; }
+    .score-ring:before { content: ""; position: absolute; inset: 5px; background: white; border-radius: 50%; }
+    .score-ring b { z-index: 1; font-size: 13px; }
+    .pulse-copy strong { display: block; font-size: 12px; }
+    .pulse-copy span { display: block; color: var(--muted); margin-top: 4px; font-size: 10px; }
+    .pulse-list { display: grid; border-top: 1px solid var(--line); }
+    .pulse-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid #f0f1ed; font-size: 10px; }
+    .pulse-row:last-child { border-bottom: 0; padding-bottom: 0; }
+    .pulse-label { display: flex; align-items: center; gap: 8px; color: #626c62; }
+    .pulse-check { display: grid; place-items: center; width: 17px; height: 17px; border-radius: 5px; color: #467855; background: #edf4ed; font-size: 11px; font-weight: 800; }
+    .pulse-value { font-weight: 700; color: #586358; }
+    .projects { margin-top: 14px; }
+    .projects .panel { padding: 0; overflow: hidden; }
+    .project-head { padding: 17px 19px 13px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .project-tools { display: flex; gap: 8px; align-items: center; }
+    .search { width: 180px; position: relative; }
+    .search svg { width: 14px; height: 14px; position: absolute; left: 9px; top: 9px; color: #9ba299; }
+    .search input { width: 100%; border: 1px solid var(--line); border-radius: 6px; height: 32px; outline: none; padding: 0 9px 0 29px; font-size: 10px; color: var(--ink); }
+    .search input:focus, .select:focus { border-color: #9db6a0; box-shadow: 0 0 0 2px #deeadf; }
+    .text-btn { border: 0; background: none; color: var(--green-2); font-size: 10px; font-weight: 700; padding: 8px 4px; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; min-width: 740px; }
+    thead { background: #fafbf9; color: #8a9389; text-transform: uppercase; letter-spacing: .07em; font-size: 9px; }
+    th { padding: 10px 16px; font-weight: 650; }
+    td { padding: 12px 16px; border-top: 1px solid #f0f1ed; color: #5f695f; font-size: 10px; white-space: nowrap; }
+    tbody tr:hover { background: #fcfdfb; }
+    .project-name { display: flex; align-items: center; gap: 10px; color: var(--ink); font-size: 11px; font-weight: 650; }
+    .project-thumb { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 7px; background: #e8eee7; color: #53745a; }
+    .project-thumb svg { width: 16px; height: 16px; }
+    .project-meta { color: #929990; font-size: 9px; font-weight: 450; margin-top: 3px; }
+    .progress-cell { min-width: 120px; }
+    .progress-line { width: 90px; height: 5px; border-radius: 6px; background: #edf0eb; display: inline-block; vertical-align: middle; margin-right: 7px; overflow: hidden; }
+    .progress-line i { display: block; height: 100%; border-radius: 6px; background: var(--green-2); }
+    .progress-cell span { font-size: 9px; color: #727d71; }
+    .status { display: inline-flex; align-items: center; gap: 5px; padding: 5px 8px; border-radius: 12px; font-size: 9px; font-weight: 650; }
+    .status:before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+    .status.on-track { color: #4b7954; background: #edf5ed; }
+    .status.at-risk { color: #a77831; background: #faf2e3; }
+    .status.delayed { color: #ae5c50; background: #f9eeeb; }
+    .empty { display: none; padding: 24px; text-align: center; color: var(--muted); }
+    .footer-note { display: flex; justify-content: space-between; color: #9aa197; font-size: 9px; padding: 11px 18px 13px; }
+    .modal-backdrop { display: none; position: fixed; inset: 0; z-index: 5; background: rgba(16,31,20,.38); align-items: center; justify-content: center; padding: 18px; }
+    .modal-backdrop.open { display: flex; }
+    .modal { width: min(430px,100%); background: white; border-radius: 12px; padding: 22px; box-shadow: 0 20px 65px #14251c44; }
+    .modal-top { display: flex; justify-content: space-between; align-items: start; margin-bottom: 18px; }
+    .modal h2 { margin: 0; font-size: 17px; letter-spacing: -.3px; }
+    .modal p { margin: 5px 0 0; color: var(--muted); font-size: 11px; }
+    .close { border: 0; background: #f3f5f1; width: 28px; height: 28px; border-radius: 7px; font-size: 18px; color: #657065; }
+    .field { margin: 12px 0; }
+    .field label { display: block; margin-bottom: 6px; font-size: 10px; font-weight: 650; color: #5a655b; }
+    .field input, .field select { width: 100%; height: 37px; border: 1px solid var(--line); border-radius: 6px; padding: 0 10px; outline: none; font-size: 11px; background: white; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .modal-actions { display: flex; justify-content: end; gap: 8px; margin-top: 19px; }
+    .secondary-btn { border: 1px solid var(--line); color: #687368; background: white; border-radius: 6px; padding: 9px 12px; font-size: 11px; }
+    @media (max-width: 1050px) { main { padding: 0 22px 30px; } .app { grid-template-columns: 205px minmax(0,1fr); } .middle { grid-template-columns: minmax(0,1.3fr) minmax(260px,1fr); } }
+    @media (max-width: 800px) { .app { grid-template-columns: 62px minmax(0,1fr); } .sidebar { padding: 20px 9px 14px; } .brand { padding: 0 5px 27px; } .brand-copy, .workspace-label, .nav a span, .upgrade, .profile-copy { display: none; } .nav a { justify-content: center; padding: 0; } .nav svg { width: 19px; height: 19px; } .profile { justify-content: center; padding: 12px 0 0; } main { padding: 0 18px 25px; } .middle { grid-template-columns: 1fr; } }
+    @media (max-width: 560px) { .app { grid-template-columns: 1fr; } .sidebar { min-height: auto; height: 56px; flex-direction: row; align-items: center; padding: 0 12px; position: sticky; top: 0; z-index: 2; } .brand { padding: 0; } .brand-mark { width: 30px; height: 30px; } .brand-copy { display: block; } .brand-name { font-size: 15px; } .brand-sub { display: none; } .nav { display: flex; margin-left: auto; gap: 3px; } .nav a { width: 38px; height: 38px; } .nav a:nth-child(n+4) { display: none; } .sidebar-bottom { display: none; } main { padding: 0 14px 22px; } .topbar { height: 55px; } .date-pill { display: none; } .welcome { align-items: start; flex-direction: column; padding: 22px 0 17px; } .welcome-row { display: flex; width: 100%; justify-content: space-between; align-items: center; gap: 7px; } h1 { font-size: 22px; } .stats { grid-template-columns: 1fr 1fr; gap: 9px; } .stat { min-height: 108px; padding: 12px; } .stat-number { font-size: 22px; } .middle { margin-top: 9px; gap: 9px; } .panel { padding: 14px; } .chart { height: 130px; } .bars { height: 102px; gap: 3px; } .bar { width: 10px; } .plot { gap: 5px; padding: 0 2px; } .projects { margin-top: 9px; } .project-head { padding: 14px; align-items: start; } .project-tools { flex-wrap: wrap; justify-content: end; } .search { width: min(145px,40vw); } .text-btn { display: none; } .project-tools .select { max-width: 105px; } .footer-note { padding: 10px 14px; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">F</div>
+        <div class="brand-copy"><div class="brand-name">Fieldwork</div><div class="brand-sub">Construction Co.</div></div>
+      </div>
+      <div class="workspace-label">Workspace</div>
+      <nav class="nav" aria-label="Main navigation">
+        <a class="active" href="#overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="5" rx="1.5"/><rect x="13" y="10" width="8" height="11" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/></svg><span>Overview</span></a>
+        <a href="#projects"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6M9 9h.01M15 9h.01M9 12h.01M15 12h.01"/></svg><span>Projects</span></a>
+        <a href="#pulse"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/><path d="m9 12 2 2 4-4"/></svg><span>Site safety</span></a>
+        <a href="#reports"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/><path d="M8 7h8M8 11h8"/></svg><span>Reports</span></a>
+        <a href="#team"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM20 8v6M23 11h-6"/></svg><span>Team</span></a>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="upgrade"><strong>Keep every site in sync</strong><p>Bring your crews, schedules, and daily reports together.</p><button type="button">Explore workspace</button></div>
+        <div class="profile"><div class="avatar">JD</div><div class="profile-copy"><div class="profile-name">Jordan Davis</div><div class="profile-role">Project Director</div></div></div>
+      </div>
+    </aside>
+    <main id="overview">
+      <header class="topbar">
+        <div class="crumb">Workspace <span style="padding:0 7px;color:#bdc3ba">/</span> <strong>Overview</strong></div>
+        <div class="top-actions"><div class="date-pill">Monday, October 5, 2026</div><button class="icon-btn" aria-label="Notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><i class="notify-dot"></i></button></div>
+      </header>
+      <div class="content">
+        <section class="welcome">
+          <div><div class="eyebrow">Monday, October 5, 2026</div><h1>Good morning, Jordan <span aria-hidden="true">☀️</span></h1><p>Here’s what’s happening across your sites this week.</p></div>
+          <div class="welcome-row"><span class="demo-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/></svg>Sample dashboard</span><button id="openModal" class="primary-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>New project</button></div>
+        </section>
+        <section class="stats" aria-label="Portfolio summary">
+          <article class="card stat"><div class="stat-head"><span>Active projects</span><span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg></span></div><div class="stat-number" id="activeCount">12</div><div class="stat-foot"><span class="trend">↑ 2</span><span>new this quarter</span></div></article>
+          <article class="card stat"><div class="stat-head"><span>Portfolio value</span><span class="stat-icon sand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span></div><div class="stat-number">$24.8M</div><div class="stat-foot"><span>Across 12 active contracts</span></div></article>
+          <article class="card stat"><div class="stat-head"><span>On schedule</span><span class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16 9"/></svg></span></div><div class="stat-number">83<span style="font-size:15px;color:#738074">%</span></div><div class="stat-foot"><span class="trend">↑ 5%</span><span>vs. last month</span></div></article>
+          <article class="card stat"><div class="stat-head"><span>Open site items</span><span class="stat-icon rose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10.3 3.9 2.5 17.4A2 2 0 0 0 4.2 20h15.6a2 2 0 0 0 1.7-2.6L13.7 3.9a2 2 0 0 0-3.4 0ZM12 9v4M12 17h.01"/></svg></span></div><div class="stat-number">07</div><div class="stat-foot"><span class="trend warn">3 need attention</span></div></article>
+        </section>
+        <section class="middle">
+          <article class="card panel" id="reports">
+            <div class="panel-head"><div><h2 class="panel-title">Project spend</h2><p class="panel-sub">Monthly spend against planned budget</p></div><div style="text-align:right"><select class="select" aria-label="Chart date range"><option>Last 6 months</option><option>This year</option></select><div class="chart-legend" style="justify-content:end;margin-top:9px"><span><i class="legend-dot"></i>Actual</span><span><i class="legend-dot light"></i>Planned</span></div></div></div>
+            <div class="chart" role="img" aria-label="Monthly planned and actual project spend from May to October">
+              <div class="ylabels"><span>$1.2m</span><span>$0.8m</span><span>$0.4m</span><span>$0</span></div>
+              <div class="plot">
+                <div class="month"><div class="bars"><i class="bar" style="height:57%"></i><i class="bar actual" style="height:48%"></i></div><span>May</span></div>
+                <div class="month"><div class="bars"><i class="bar" style="height:68%"></i><i class="bar actual" style="height:61%"></i></div><span>Jun</span></div>
+                <div class="month"><div class="bars"><i class="bar" style="height:62%"></i><i class="bar actual" style="height:67%"></i></div><span>Jul</span></div>
+                <div class="month"><div class="bars"><i class="bar" style="height:82%"></i><i class="bar actual" style="height:72%"></i></div><span>Aug</span></div>
+                <div class="month"><div class="bars"><i class="bar" style="height:76%"></i><i class="bar actual" style="height:71%"></i></div><span>Sep</span></div>
+                <div class="month"><div class="bars"><i class="bar" style="height:88%"></i><i class="bar actual" style="height:82%"></i></div><span>Oct</span></div>
+              </div>
+            </div>
+          </article>
+          <article class="card panel pulse-card" id="pulse">
+            <div class="panel-head"><div><h2 class="panel-title">Site safety pulse</h2><p class="panel-sub">Weekly field operations snapshot</p></div><button class="text-btn" type="button">View report ↗</button></div>
+            <div class="pulse-score"><div class="score-ring"><b>92</b></div><div class="pulse-copy"><strong>Strong week so far</strong><span>Safety score across active sites</span></div></div>
+            <div class="pulse-list">
+              <div class="pulse-row"><span class="pulse-label"><i class="pulse-check">✓</i>Toolbox talks completed</span><span class="pulse-value">18 / 20</span></div>
+              <div class="pulse-row"><span class="pulse-label"><i class="pulse-check">✓</i>Site inspections</span><span class="pulse-value">9 / 10</span></div>
+              <div class="pulse-row"><span class="pulse-label"><i class="pulse-check">✓</i>Incidents this month</span><span class="pulse-value">0</span></div>
+            </div>
+          </article>
+        </section>
+        <section class="projects" id="projects">
+          <article class="card">
+            <div class="project-head"><div><h2 class="panel-title">Project overview</h2><p class="panel-sub">A live look at your current construction portfolio</p></div><div class="project-tools"><label class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="searchInput" type="search" placeholder="Search projects…" aria-label="Search projects"></label><select class="select" id="statusFilter" aria-label="Filter projects by status"><option value="all">All status</option><option value="on-track">On track</option><option value="at-risk">At risk</option><option value="delayed">Delayed</option></select><button class="text-btn" id="viewAll" type="button">View all →</button></div></div>
+            <div class="table-wrap"><table><thead><tr><th>Project</th><th>Project manager</th><th>Budget</th><th>Progress</th><th>Target date</th><th>Status</th></tr></thead><tbody id="projectRows"></tbody></table><div id="emptyState" class="empty">No projects match your search.</div></div>
+            <div class="footer-note"><span id="rowCount">Showing 5 of 12 projects</span><span>Updated just now</span></div>
+          </article>
+        </section>
+        <div id="team" style="height:1px"></div>
+      </div>
+    </main>
+  </div>
+  <div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <form class="modal" id="projectForm">
+      <div class="modal-top"><div><h2 id="modalTitle">Add a project</h2><p>Add a project to the overview table.</p></div><button class="close" id="closeModal" type="button" aria-label="Close">×</button></div>
+      <div class="field"><label for="projectName">Project name</label><input id="projectName" name="projectName" required placeholder="e.g. Riverside Community Center"></div>
+      <div class="form-grid"><div class="field"><label for="manager">Project manager</label><input id="manager" name="manager" required placeholder="Name"></div><div class="field"><label for="budget">Contract budget</label><input id="budget" name="budget" type="number" min="1" required placeholder="2500000"></div></div>
+      <div class="form-grid"><div class="field"><label for="targetDate">Target date</label><input id="targetDate" name="targetDate" type="date" required></div><div class="field"><label for="status">Status</label><select id="status" name="status"><option value="on-track">On track</option><option value="at-risk">At risk</option><option value="delayed">Delayed</option></select></div></div>
+      <div class="modal-actions"><button class="secondary-btn" id="cancelModal" type="button">Cancel</button><button class="primary-btn" type="submit">Add project</button></div>
+    </form>
+  </div>
+  <script>
+    const projects = [
+      { name:"Riverside Medical Center", kind:"Healthcare · Portland, OR", manager:"Alex Morgan", budget:8400000, progress:68, target:"Nov 18, 2026", status:"on-track" },
+      { name:"Cedar Grove Residences", kind:"Residential · Beaverton, OR", manager:"Sam Patel", budget:5200000, progress:42, target:"Jan 30, 2027", status:"at-risk" },
+      { name:"Eastside Transit Hub", kind:"Infrastructure · Portland, OR", manager:"Taylor Brooks", budget:6800000, progress:81, target:"Oct 28, 2026", status:"on-track" },
+      { name:"Northpoint Logistics", kind:"Industrial · Hillsboro, OR", manager:"Jamie Chen", budget:3100000, progress:29, target:"Mar 12, 2027", status:"delayed" },
+      { name:"Maple Street School", kind:"Education · Gresham, OR", manager:"Riley James", budget:1300000, progress:56, target:"Dec 09, 2026", status:"on-track" }
+    ];
+    const statusLabels = { "on-track":"On track", "at-risk":"At risk", delayed:"Delayed" };
+    const money = (n) => "$" + (n >= 1000000 ? (n / 1000000).toFixed(1) + "M" : Math.round(n / 1000) + "K");
+    function renderProjects() {
+      const query = document.getElementById("searchInput").value.toLowerCase().trim();
+      const status = document.getElementById("statusFilter").value;
+      const visible = projects.filter((p) => (status === "all" || p.status === status) && (p.name + " " + p.kind + " " + p.manager).toLowerCase().includes(query));
+      document.getElementById("projectRows").innerHTML = visible.map((p) => '<tr><td><div class="project-name"><i class="project-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg></i><div>' + p.name + '<div class="project-meta">' + p.kind + '</div></div></div></td><td>' + p.manager + '</td><td>' + money(p.budget) + '</td><td class="progress-cell"><i class="progress-line"><i style="width:' + p.progress + '%"></i></i><span>' + p.progress + '%</span></td><td>' + p.target + '</td><td><span class="status ' + p.status + '">' + statusLabels[p.status] + '</span></td></tr>').join("");
+      document.getElementById("emptyState").style.display = visible.length ? "none" : "block";
+      const extraProjects = Math.max(0, 12 + Math.max(0, projects.length - 5) - projects.length);
+      document.getElementById("rowCount").textContent = "Showing " + visible.length + (visible.length === 1 ? " project" : " projects") + (query || status !== "all" ? " · filtered" : extraProjects ? " · " + extraProjects + " more in portfolio") + " · sample data";
+    }
+    const backdrop = document.getElementById("modalBackdrop");
+    function openModal() { backdrop.classList.add("open"); document.getElementById("projectName").focus(); }
+    function closeModal() { backdrop.classList.remove("open"); }
+    document.getElementById("openModal").addEventListener("click", openModal);
+    document.getElementById("closeModal").addEventListener("click", closeModal);
+    document.getElementById("cancelModal").addEventListener("click", closeModal);
+    backdrop.addEventListener("click", (e) => { if (e.target === backdrop) closeModal(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
+    document.getElementById("searchInput").addEventListener("input", renderProjects);
+    document.getElementById("statusFilter").addEventListener("change", renderProjects);
+    document.getElementById("viewAll").addEventListener("click", () => { document.getElementById("statusFilter").value = "all"; document.getElementById("searchInput").value = ""; renderProjects(); });
+    document.getElementById("projectForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const data = new FormData(e.currentTarget);
+      const rawDate = data.get("targetDate");
+      const parsedDate = new Date(rawDate + "T12:00:00");
+      const dateText = parsedDate.toLocaleDateString("en-US", { month:"short", day:"2-digit", year:"numeric" });
+      projects.unshift({ name:data.get("projectName"), kind:"New project", manager:data.get("manager"), budget:Number(data.get("budget")), progress:0, target:dateText, status:data.get("status") });
+      document.getElementById("activeCount").textContent = String(12 + Math.max(0, projects.length - 5));
+      document.getElementById("searchInput").value = "";
+      document.getElementById("statusFilter").value = "all";
+      renderProjects();
+      document.getElementById("projectForm").reset();
+      closeModal();
+    });
+    renderProjects();
+  </script>
+</body>
+</html>
