@@ -171,8 +171,7 @@
       document.getElementById("stepNav").innerHTML=categories.map((cat,i)=>'<button type="button" class="step '+(cat.id===state.current?"active ":"")+(isComplete(cat)?"done":"")+'" data-category="'+cat.id+'"><span class="step-num">'+(isComplete(cat)?"✓":String(i+1).padStart(2,"0"))+'</span><span><span class="step-name">'+cat.short+'</span><span class="step-hint">'+(cat.required?"Required":"Optional")+'</span></span><span class="step-state">'+statusMark(cat)+'</span></button>').join("");
       document.querySelectorAll(".step").forEach((btn)=>btn.addEventListener("click",()=>{state.current=btn.dataset.category;state.skipped[state.current]=false;render();}));
     }
-    const photoSheets={kitchen:"catalog-kitchen.png",flooring:"images/catalog-flooring.png",bathrooms:"images/catalog-bathrooms.png",doors:"images/catalog-doors.png",wardrobes:"images/catalog-wardrobes.png",lighting:"images/catalog-lighting.png",upgrades:"images/catalog-upgrades.png"};
-    function photoMarkup(cat,item){
+        const photoSheets={kitchen:"catalog-kitchen.png",flooring:"catalog-flooring.png",bathrooms:"catalog-bathrooms.png",doors:"catalog-doors.png",wardrobes:"catalog-wardrobes.png",lighting:"catalog-lighting.png",upgrades:"catalog-upgrades.png"};
       let cell=cat.options.indexOf(item);
       if(cat.id==="kitchen")cell=({"oak-kitchen":1,"white-kitchen":0,"charcoal-kitchen":2,"stone-kitchen":3})[item.id];
       const positions=[[0,14],[100,14],[0,86],[100,86]][Math.max(0,cell)];
